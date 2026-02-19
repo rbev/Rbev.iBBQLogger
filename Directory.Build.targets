@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- Android -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-android')) != true">
+        <Compile Remove="**\*.droid.cs" />
+        <None Include="**\*.droid.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+
+    <!-- Both iOS and Mac Catalyst -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-ios')) != true AND $(TargetFramework.Contains('-maccatalyst')) != true">
+        <Compile Remove="**\*.mac-ios.cs" />
+        <None Include="**\*.mac-ios.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+
+    <!-- iOS -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-ios')) != true">
+        <Compile Remove="**\*.ios.cs" />
+        <None Include="**\*.ios.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+
+    <!-- Mac Catalyst -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-maccatalyst')) != true">
+        <Compile Remove="**\*.mac.cs" />
+        <None Include="**\*.mac.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+    
+    <!-- MacOs -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-macos')) != true">
+        <Compile Remove="**\*.macos.cs" />
+        <None Include="**\*.macos.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+
+    <!-- Windows -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
+        <Compile Remove="**\*.win.cs" />
+        <None Include="**\*.win.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+
+    <!-- None -->
+    <ItemGroup Condition="$(TargetFramework.Contains('-')) == true">
+        <Compile Remove="**\*.core.cs" />
+        <None Include="**\*.core.cs" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+    </ItemGroup>
+</Project>

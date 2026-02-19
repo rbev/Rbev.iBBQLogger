@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RBev.iBBQLogger.Macos\RBev.iBBQLogger.Macos.csproj" Type="Classic C#" />
+  <Project Path="RBev.iBBQLogger.Tests\RBev.iBBQLogger.Tests.csproj" Type="Classic C#" />
+  <Project Path="RBev.iBBQLogger\RBev.iBBQLogger.csproj" Type="Classic C#" />
+</Solution>

@@ -1,0 +1,16 @@
+<avalonia:ReactiveWindow x:TypeArguments="presentation:ShellViewModel" xmlns="https://github.com/avaloniaui"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                         xmlns:avalonia="http://reactiveui.net"
+                         xmlns:presentation="clr-namespace:RBev.iBBQLogger.Presentation"
+                         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                         x:Class="RBev.iBBQLogger.Presentation.Shell"
+                         Foreground="White"
+                         Title="iBBQ Logger">
+    <StackPanel>
+        <TextBlock Foreground="Red">Yo! again 3</TextBlock>
+        <TextBlock x:Name="Info"></TextBlock>
+        <avalonia:RoutedViewHost x:Name="Host"></avalonia:RoutedViewHost>
+    </StackPanel>
+</avalonia:ReactiveWindow>

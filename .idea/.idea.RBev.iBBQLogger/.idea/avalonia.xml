@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="RBev.iBBQLogger/Presentation/RootPageView.axaml" value="RBev.iBBQLogger/RBev.iBBQLogger.csproj" />
+        <entry key="RBev.iBBQLogger/Presentation/Shell.axaml" value="RBev.iBBQLogger/RBev.iBBQLogger.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

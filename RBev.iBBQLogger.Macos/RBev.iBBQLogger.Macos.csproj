@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0-macos</TargetFramework>
+        
+        <UseAppHost>true</UseAppHost>
+        <EnableAppHost>true</EnableAppHost>
+        <CreatePackage>true</CreatePackage>
+
+        <RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
+        
+        <AssemblyName>RBev.iBBQLogger.Macos</AssemblyName>
+
+        <ApplicationTitle>RBev.iBBQLogger.Macos</ApplicationTitle>
+        <ApplicationId>space.rbev.ibbq</ApplicationId>
+        <ApplicationVersion>1.0</ApplicationVersion>
+        <ApplicationManifest>Info.plist</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\RBev.iBBQLogger\RBev.iBBQLogger.csproj" />
+    </ItemGroup>
+
+</Project>

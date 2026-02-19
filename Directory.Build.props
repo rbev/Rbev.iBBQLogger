@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([System.String]::Copy('$(TargetFramework)').Contains('-macos'))">
+        <TargetPlatformVersion>26.2</TargetPlatformVersion>
+        <SupportedOSPlatformVersion>26.2</SupportedOSPlatformVersion>
+    </PropertyGroup>
+</Project>
