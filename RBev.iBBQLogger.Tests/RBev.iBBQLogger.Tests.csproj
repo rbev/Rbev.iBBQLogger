@@ -30,4 +30,8 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\RBev.iBBQLogger\RBev.iBBQLogger.csproj" />
+    </ItemGroup>
+
 </Project>

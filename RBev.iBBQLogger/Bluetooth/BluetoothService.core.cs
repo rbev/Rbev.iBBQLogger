@@ -9,6 +9,11 @@ public class BluetoothService : IBluetoothService
         throw new NotImplementedException();
     }
 
+    public Task<TemperatureProbe[]> ReadProbeDataAsync(InkbirdDevice device)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Dispose()
     {
     }

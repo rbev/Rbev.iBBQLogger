@@ -1,60 +1,42 @@
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using CoreBluetooth;
+using RBev.iBBQLogger.Bluetooth.Macos;
 using RBev.iBBQLogger.Bluetooth.Model;
 
 namespace RBev.iBBQLogger.Bluetooth;
 
 public class BluetoothService : IBluetoothService
 {
-    #if MACOS 
-    private Lazy<CBCentralManager> manager = new();
-    #endif
-    public async Task<InkbirdDevice[]> ScanForDevicesAsync(TimeSpan? minSearch = null, TimeSpan? maxSearch = null)
+    private readonly Lazy<CBCentralManager> _manager = new();
+    
+    public async Task<InkbirdDevice[]> ScanForDevicesAsync(TimeSpan? minSearch = null, TimeSpan? maxSearch = null) =>
+        await _manager.Value
+            .ScanForPeripheralsAsync()
+            .Where(x => x.EventArgs.Peripheral.Name == "iBBQ")
+            .Select(x => new InkbirdDevice(x.EventArgs.Peripheral.Identifier.ToString(),
+                x.EventArgs.Peripheral.Name ?? "",
+                x.EventArgs.Peripheral)
+            )
+            //todo: make it wait for the minimum search time & return multiple
+            .Take(1)
+            .Timeout(maxSearch ?? TimeSpan.FromSeconds(10))
+            .ToArray();
+
+    public async Task<TemperatureProbe[]> ReadProbeDataAsync(InkbirdDevice device)
     {
-        var found = new TaskCompletionSource();
-        var foundDevices = new List<InkbirdDevice>();
+        using var inkbirdDevice = InkbirdIBBQDriver.Create(_manager.Value, device.Device);
 
-        void OnValueOnDiscoveredPeripheral(object? sender, CBDiscoveredPeripheralEventArgs args)
-        {
-            if (args.Peripheral.Name == "iBBQ")
-            {
-                //get the name and id of the device and add it to the list of found devices
-                foundDevices.Add(new  InkbirdDevice()
-                {
-                    Id = args.Peripheral.Identifier.ToString(),
-                    Name = args.Peripheral.Name
-                    
-                });
-            }
-                
-            {
-                
-            }
-            found.TrySetResult();
-        }
+        await inkbirdDevice.ConnectAsync();
 
-        manager.Value.DiscoveredPeripheral += OnValueOnDiscoveredPeripheral;
-
-        try
-        {
-
-            manager.Value.ScanForPeripherals([]);
-            await Task.WhenAny(Task.WhenAll(Task.Delay(minSearch ?? TimeSpan.FromSeconds(1)), found.Task), Task.Delay(maxSearch ?? TimeSpan.FromSeconds(10)));
-
-        }
-        catch (Exception)
-        {
-            manager.Value.DiscoveredPeripheral += OnValueOnDiscoveredPeripheral;
-
-            throw;
-        }
-        
-        return foundDevices.ToArray();
+        return await inkbirdDevice.TemperatureDataObservable()
+            .TakeUntil(Observable.Timer(TimeSpan.FromSeconds(30)))
+            .FirstOrDefaultAsync() ?? [];
     }
-
 
     public void Dispose()
     {
-        if (manager.IsValueCreated)
-            manager.Value.Dispose();
+        if (_manager.IsValueCreated)
+            _manager.Value.Dispose();
     }
 }

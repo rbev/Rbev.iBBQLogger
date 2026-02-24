@@ -4,7 +4,42 @@
                               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                               xmlns:avalonia="http://reactiveui.net"
                               xmlns:presentation="clr-namespace:RBev.iBBQLogger.Presentation"
+                              xmlns:model="clr-namespace:RBev.iBBQLogger.Bluetooth.Model"
                               mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                              x:DataType="presentation:RootPageViewModel"
+                              x:Name="ViewRoot"
                               x:Class="RBev.iBBQLogger.Presentation.RootPageView">
-    Welcome to ReactiveUI!
+    <StackPanel Margin="16" Spacing="12">
+        <Button Content="Search"
+                Command="{Binding SearchDevicesCommand}" />
+        
+        <ItemsControl ItemsSource="{Binding DeviceList}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="model:InkbirdDevice">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="{Binding Name}"></TextBlock>
+                        <TextBlock Text="{Binding Id, StringFormat=({0})}"></TextBlock>
+                        <Button 
+                            Command="{Binding #ViewRoot.ViewModel.ReadProbeDataCommand}"
+                            CommandParameter="{Binding}">
+                            Read Temps
+                        </Button>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
+        <ItemsControl ItemsSource="{Binding ProbeData}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="model:TemperatureProbe">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="{Binding Name}"></TextBlock>
+                        <TextBlock Text="{Binding Temperature, StringFormat={}{0} °C}"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        
+        <TextBlock Text="{Binding Message}" Foreground="Gray" Background="White"></TextBlock>
+    </StackPanel>
 </avalonia:ReactiveUserControl>

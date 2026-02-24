@@ -3,8 +3,8 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
-        <entry key="RBev.iBBQLogger/Presentation/RootPageView.axaml" value="RBev.iBBQLogger/RBev.iBBQLogger.csproj" />
-        <entry key="RBev.iBBQLogger/Presentation/Shell.axaml" value="RBev.iBBQLogger/RBev.iBBQLogger.csproj" />
+        <entry key="RBev.iBBQLogger/Presentation/RootPageView.axaml" value="RBev.iBBQLogger.Tests/RBev.iBBQLogger.Tests.csproj" />
+        <entry key="RBev.iBBQLogger/Presentation/Shell.axaml" value="RBev.iBBQLogger.Tests/RBev.iBBQLogger.Tests.csproj" />
       </map>
     </option>
   </component>

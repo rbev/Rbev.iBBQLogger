@@ -17,5 +17,6 @@
         <PackageReference Include="ReactiveUI.Avalonia" Version="11.3.8" />
         <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1" />
         <PackageReference Include="Splat.Autofac" Version="17.1.1" />
+        <PackageReference Include="Stateless" Version="5.20.1" />
     </ItemGroup>
 </Project>

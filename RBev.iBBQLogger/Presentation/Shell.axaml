@@ -9,8 +9,6 @@
                          Foreground="White"
                          Title="iBBQ Logger">
     <StackPanel>
-        <TextBlock Foreground="Red">Yo! again 3</TextBlock>
-        <TextBlock x:Name="Info"></TextBlock>
         <avalonia:RoutedViewHost x:Name="Host"></avalonia:RoutedViewHost>
     </StackPanel>
 </avalonia:ReactiveWindow>

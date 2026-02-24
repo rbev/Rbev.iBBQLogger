@@ -1,4 +1,5 @@
 using Autofac;
+using RBev.iBBQLogger.Bluetooth;
 using RBev.iBBQLogger.Presentation;
 using ReactiveUI;
 
@@ -20,6 +21,8 @@ public class ContainerSetupModule : Module
         builder.RegisterType<ShellViewModel>()
             .AsSelf().As<IScreen>()
             .SingleInstance();
+        
+        builder.RegisterType<BluetoothService>().As<IBluetoothService>().SingleInstance();
     }
 
     private static void RegisterReactiveUiIntegration(ContainerBuilder builder)
