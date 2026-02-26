@@ -1,4 +1,3 @@
-using System.Linq;
 using RBev.iBBQLogger.Bluetooth;
 using RBev.iBBQLogger.Bluetooth.Model;
 using RBev.iBBQLogger.Infrastructure;
@@ -12,8 +11,7 @@ public partial class RootPageViewModel : BaseViewModel
     private readonly IBluetoothService _bluetoothService;
 
     [Reactive] public partial InkbirdDevice[] DeviceList { get; set; } = [];
-    [Reactive] public partial TemperatureProbe[] ProbeData { get; set; } = [];
-    [Reactive] public partial string Message { get; set; }
+    [Reactive] public partial string Message { get; set; } = string.Empty;
 
     public RootPageViewModel(IScreen screen, IBluetoothService bluetoothService) : base(screen)
     {
@@ -34,13 +32,17 @@ public partial class RootPageViewModel : BaseViewModel
     }
 
     [ReactiveCommand]
-    private async Task ReadProbeDataAsync(InkbirdDevice device)
+    private async Task OpenDeviceScreenAsync(InkbirdDevice device)
     {
         try
         {
-            ProbeData = await _bluetoothService.ReadProbeDataAsync(device);
-            Console.WriteLine("Probe Data:");
-            ProbeData.ToList().ForEach(p => Console.WriteLine($"Device: {p.DeviceId}, Temperature: {p.Temperature}"));
+            if (HostScreen is not ShellViewModel shellViewModel)
+            {
+                Message = "Navigation host is not available.";
+                return;
+            }
+
+            await shellViewModel.NavigateAsync<DevicePageViewModel>(vm => vm.SetDevice(device));
         }
         catch (Exception e)
         {

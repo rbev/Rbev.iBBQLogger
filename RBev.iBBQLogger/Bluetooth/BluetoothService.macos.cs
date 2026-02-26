@@ -25,14 +25,16 @@ public class BluetoothService : IBluetoothService
 
     public async Task<TemperatureProbe[]> ReadProbeDataAsync(InkbirdDevice device)
     {
-        using var inkbirdDevice = InkbirdIBBQDriver.Create(_manager.Value, device.Device);
-
-        await inkbirdDevice.ConnectAsync();
-
-        return await inkbirdDevice.TemperatureDataObservable()
+        return await StreamProbeData(device, autoReconnect: false)
             .TakeUntil(Observable.Timer(TimeSpan.FromSeconds(30)))
             .FirstOrDefaultAsync() ?? [];
     }
+
+    public IObservable<TemperatureProbe[]> StreamProbeData(InkbirdDevice device, bool autoReconnect = true) =>
+        Observable.Using(
+            () => InkbirdIBBQDriver.Create(_manager.Value, device.Device),
+            driver => driver.TemperatureDataObservable(autoReconnect)
+        );
 
     public void Dispose()
     {

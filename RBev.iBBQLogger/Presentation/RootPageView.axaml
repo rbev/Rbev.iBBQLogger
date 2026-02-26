@@ -20,26 +20,15 @@
                         <TextBlock Text="{Binding Name}"></TextBlock>
                         <TextBlock Text="{Binding Id, StringFormat=({0})}"></TextBlock>
                         <Button 
-                            Command="{Binding #ViewRoot.ViewModel.ReadProbeDataCommand}"
+                            Command="{Binding #ViewRoot.ViewModel.OpenDeviceScreenCommand}"
                             CommandParameter="{Binding}">
-                            Read Temps
+                            Open Device
                         </Button>
                     </StackPanel>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        
-        <ItemsControl ItemsSource="{Binding ProbeData}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="model:TemperatureProbe">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <TextBlock Text="{Binding Name}"></TextBlock>
-                        <TextBlock Text="{Binding Temperature, StringFormat={}{0} °C}"></TextBlock>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        
+
         <TextBlock Text="{Binding Message}" Foreground="Gray" Background="White"></TextBlock>
     </StackPanel>
 </avalonia:ReactiveUserControl>

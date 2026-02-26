@@ -14,6 +14,11 @@ public class BluetoothService : IBluetoothService
         throw new NotImplementedException();
     }
 
+    public IObservable<TemperatureProbe[]> StreamProbeData(InkbirdDevice device, bool autoReconnect = true)
+    {
+        throw new NotImplementedException();
+    }
+
     public void Dispose()
     {
     }
