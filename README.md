@@ -10,9 +10,9 @@ This project is currently not particularly useful - and is basically a technical
 - [x] Get cross platform bits in place (macos to start)
 - [x] Connect to device
 - [x] Read temperature data
-- [ ] Have device auto-reconnect if connection is lost
+- [x] Have device auto-reconnect if connection is lost
 - [ ] Log a cooking session
-- [ ] Render graphs for a session
+- [x] Render graphs for a session
 - [ ] Alarms & notifications
 - [ ] Windows support
 - [ ] Linux support
