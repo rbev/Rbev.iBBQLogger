@@ -12,8 +12,12 @@ public class InkbirdIBBQDriver : IDisposable
     private readonly CBCentralManager _manager;
     private readonly CBPeripheral _btDevice;
     private readonly StateMachine<State, Trigger> _stateMachine = new(State.New);
+    private readonly CompositeDisposable _connectionEventSubscriptions = new();
     private CBService? _iBbqService;
     private readonly TimeSpan _reconnectDelay = TimeSpan.FromSeconds(3);
+    private bool _isDisposed;
+
+    public bool AutoReconnectEnabled { get; set; }
 
 
     public enum State
@@ -49,7 +53,31 @@ public class InkbirdIBBQDriver : IDisposable
 
         _stateMachine.Configure(State.Disconnected)
             .Permit(Trigger.Connect, State.Connecting)
-            .OnEntry(OnDisconnecting, "Disconnecting device");
+            .OnEntryAsync(OnDisconnectedAsync, "Disconnecting device");
+
+        _connectionEventSubscriptions.Add(
+            _manager.DidDisconnectPeripheralObservable()
+                .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
+                .Subscribe(_event => { _ = HandlePeripheralDisconnectedAsync(); }));
+
+        _connectionEventSubscriptions.Add(
+            _manager.DisconnectedPeripheralObservable()
+                .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
+                .Subscribe(_event => { _ = HandlePeripheralDisconnectedAsync(); }));
+
+        _connectionEventSubscriptions.Add(
+            _manager.FailedToConnectPeripheralObservable()
+                .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
+                .Subscribe(_event => { _ = HandlePeripheralDisconnectedAsync(); }));
+    }
+
+    private async Task HandlePeripheralDisconnectedAsync()
+    {
+        if (_isDisposed)
+            return;
+
+        if (_stateMachine.CanFire(Trigger.Disconnect))
+            await _stateMachine.FireAsync(Trigger.Disconnect);
     }
 
     private async Task OnConnectingAsync()
@@ -76,7 +104,8 @@ public class InkbirdIBBQDriver : IDisposable
         catch (Exception e)
         {
             Console.WriteLine(e);
-            await _stateMachine.FireAsync(Trigger.Disconnect);
+            if (_stateMachine.CanFire(Trigger.Disconnect))
+                await _stateMachine.FireAsync(Trigger.Disconnect);
         }
     }
 
@@ -121,8 +150,25 @@ public class InkbirdIBBQDriver : IDisposable
         catch (Exception e)
         {
             Console.WriteLine(e);
-            await _stateMachine.FireAsync(Trigger.Disconnect);
+            if (_stateMachine.CanFire(Trigger.Disconnect))
+                await _stateMachine.FireAsync(Trigger.Disconnect);
         }
+    }
+
+    private async Task OnDisconnectedAsync()
+    {
+        OnDisconnecting();
+
+        if (_isDisposed || !AutoReconnectEnabled)
+            return;
+
+        await Task.Delay(_reconnectDelay);
+
+        if (_isDisposed)
+            return;
+
+        if (_stateMachine.CanFire(Trigger.Connect))
+            await _stateMachine.FireAsync(Trigger.Connect);
     }
 
     private void OnDisconnecting()
@@ -146,102 +192,38 @@ public class InkbirdIBBQDriver : IDisposable
             await _stateMachine.FireAsync(Trigger.Connect);
     }
 
-    public IObservable<TemperatureProbe[]> TemperatureDataObservable(bool autoReconnect = true) =>
-        Observable.Create<TemperatureProbe[]>(observer =>
+    public IObservable<TemperatureProbe[]> TemperatureDataObservable() => _btDevice
+        .UpdatedCharacterteristicValueObservable()
+        .Where(e => e.EventArgs.Characteristic.UUID.Equals(
+            CBUUID.FromPartial(IBBQBluetoothDefinition.Services.IBBQ.Characteristics.RealtimeData)))
+        .Select(x =>
         {
-            var disconnected = false;
-            var connectedSubscription = new SerialDisposable();
+            var data = x.EventArgs.Characteristic.Value?.ToArray() ?? [];
+            List<TemperatureProbe> probes = new();
 
-            async Task EnsureConnectedAsync(bool allowReconnect)
+            // the data comes in as little endian 16 bit integers
+            for (int i = 0; i + 1 < data.Length; i += 2)
             {
-                while (!disconnected)
-                {
-                    await ConnectAsync();
-                    if (_stateMachine.State == State.Connected)
-                        return;
+                int value = data[i + 1] << 8;
+                value |= data[i];
+                if (value > IBBQBluetoothDefinition.Constants.ProbeErrorValue)
+                    continue;
 
-                    if (!allowReconnect)
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-
-                    await Task.Delay(_reconnectDelay);
-                }
+                probes.Add(new TemperatureProbe(_btDevice.Identifier.ToString(), $"Probe {i / 2 + 1}", value / 10d));
             }
 
-            async Task HandleDisconnectAsync(bool allowReconnect)
-            {
-                if (_stateMachine.CanFire(Trigger.Disconnect))
-                    await _stateMachine.FireAsync(Trigger.Disconnect);
-
-                await EnsureConnectedAsync(allowReconnect);
-            }
-
-            connectedSubscription.Disposable = _btDevice
-                .UpdatedCharacterteristicValueObservable()
-                .Where(e => e.EventArgs.Characteristic.UUID.Equals(
-                    CBUUID.FromPartial(IBBQBluetoothDefinition.Services.IBBQ.Characteristics.RealtimeData)))
-                .Select(x =>
-                {
-                    var data = x.EventArgs.Characteristic.Value?.ToArray() ?? [];
-                    List<TemperatureProbe> probes = new();
-
-                    // the data comes in as little endian 16 bit integers
-                    for (int i = 0; i + 1 < data.Length; i += 2)
-                    {
-                        int value = data[i + 1] << 8;
-                        value |= data[i];
-                        if (value > IBBQBluetoothDefinition.Constants.ProbeErrorValue)
-                            continue;
-
-                        probes.Add(new TemperatureProbe(_btDevice.Identifier.ToString(), $"Probe {i / 2 + 1}", value / 10d));
-                    }
-
-                    return probes.ToArray();
-                })
-                .Where(x => x.Length > 0)
-                .Subscribe(observer);
-
-            var disconnectSubscriptions = new CompositeDisposable(
-                _manager.DidDisconnectPeripheralObservable()
-                    .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
-                    .Subscribe(_event =>
-                    {
-                        _ = HandleDisconnectAsync(autoReconnect);
-                    }),
-                _manager.DisconnectedPeripheralObservable()
-                    .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
-                    .Subscribe(_event =>
-                    {
-                        _ = HandleDisconnectAsync(autoReconnect);
-                    }),
-                _manager.FailedToConnectPeripheralObservable()
-                    .Where(x => x.EventArgs.Peripheral.Identifier.Equals(_btDevice.Identifier))
-                    .Subscribe(_event =>
-                    {
-                        _ = HandleDisconnectAsync(autoReconnect);
-                    })
-            );
-
-            _ = EnsureConnectedAsync(autoReconnect);
-
-            return new CompositeDisposable(
-                connectedSubscription,
-                disconnectSubscriptions,
-                Disposable.Create(() =>
-                {
-                    disconnected = true;
-                    if (_stateMachine.CanFire(Trigger.Disconnect))
-                        _stateMachine.Fire(Trigger.Disconnect);
-                })
-            );
-        });
+            return probes.ToArray();
+        })
+        .Where(x => x.Length > 0);
 
     public static InkbirdIBBQDriver Create(CBCentralManager manager, CBPeripheral btDevice) => new(manager, btDevice);
 
     public void Dispose()
     {
+        _isDisposed = true;
+        AutoReconnectEnabled = false;
+        _connectionEventSubscriptions.Dispose();
+
         if (_stateMachine.CanFire(Trigger.Disconnect))
             _stateMachine.Fire(Trigger.Disconnect);
     }

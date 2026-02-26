@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFrameworks>net10.0;net10.0-macos</TargetFrameworks>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <NoWarn>IL2026</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

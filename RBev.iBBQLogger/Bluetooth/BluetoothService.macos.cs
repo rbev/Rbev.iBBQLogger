@@ -32,8 +32,13 @@ public class BluetoothService : IBluetoothService
 
     public IObservable<TemperatureProbe[]> StreamProbeData(InkbirdDevice device, bool autoReconnect = true) =>
         Observable.Using(
-            () => InkbirdIBBQDriver.Create(_manager.Value, device.Device),
-            driver => driver.TemperatureDataObservable(autoReconnect)
+            () =>
+            {
+                var driver = InkbirdIBBQDriver.Create(_manager.Value, device.Device);
+                driver.AutoReconnectEnabled = autoReconnect;
+                return driver;
+            },
+            driver => Observable.FromAsync(driver.ConnectAsync).SelectMany(_ => driver.TemperatureDataObservable())
         );
 
     public void Dispose()
