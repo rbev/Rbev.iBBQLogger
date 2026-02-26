@@ -3,11 +3,14 @@
                               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                               xmlns:avalonia="http://reactiveui.net"
+                              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
                               xmlns:presentation="clr-namespace:RBev.iBBQLogger.Presentation"
+                              xmlns:model="clr-namespace:RBev.iBBQLogger.Presentation.Model"
+                              xmlns:charting="clr-namespace:RBev.iBBQLogger.Infrastructure.Charting"
                               mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
                               x:DataType="presentation:DevicePageViewModel"
                               x:Class="RBev.iBBQLogger.Presentation.DevicePageView">
-    <Grid Margin="16" RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*">
+    <Grid Margin="16" RowDefinitions="Auto,Auto,2*,2*,Auto" ColumnDefinitions="*">
         <TextBlock Grid.Row="0" Text="{Binding DeviceName}" FontSize="18" FontWeight="Bold" />
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,0,12">
@@ -16,7 +19,21 @@
             <Button Content="Back" Command="{Binding BackCommand}" />
         </StackPanel>
 
-        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Padding="8">
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" Padding="8" Margin="0,0,0,8">
+            <lvc:CartesianChart SeriesSource="{Binding ChartSeries}"
+                                XAxes="{Binding XAxes}"
+                                YAxes="{Binding YAxes}">
+                <lvc:CartesianChart.SeriesTemplate>
+                    <DataTemplate DataType="charting:ReactiveChartSeries">
+                        <lvc:XamlLineSeries
+                            SeriesName="{Binding Name}"
+                            Values="{Binding Values}"/>
+                    </DataTemplate>
+                </lvc:CartesianChart.SeriesTemplate>
+            </lvc:CartesianChart>
+        </Border>
+
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding ProbeLog}">
                     <ItemsControl.ItemTemplate>
@@ -28,6 +45,6 @@
             </ScrollViewer>
         </Border>
 
-        <TextBlock Grid.Row="3" Margin="0,12,0,0" Text="{Binding Message}" Foreground="Gray" />
+        <TextBlock Grid.Row="4" Margin="0,12,0,0" Text="{Binding Message}" Foreground="Gray" />
     </Grid>
 </avalonia:ReactiveUserControl>

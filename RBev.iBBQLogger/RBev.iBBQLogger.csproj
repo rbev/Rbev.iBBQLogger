@@ -10,6 +10,7 @@
         <PackageReference Include="Avalonia" Version="11.3.12"/>
         <PackageReference Include="Avalonia.Desktop" Version="11.3.12"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12"/>
+        <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc6.1" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
             <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
@@ -19,5 +20,9 @@
         <PackageReference Include="ReactiveUI.SourceGenerators" Version="2.6.1" />
         <PackageReference Include="Splat.Autofac" Version="17.1.1" />
         <PackageReference Include="Stateless" Version="5.20.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Presentation\Model\" />
     </ItemGroup>
 </Project>

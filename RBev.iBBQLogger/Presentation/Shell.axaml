@@ -8,7 +8,7 @@
                          x:Class="RBev.iBBQLogger.Presentation.Shell"
                          Foreground="White"
                          Title="iBBQ Logger">
-    <StackPanel>
+    <DockPanel LastChildFill="True">
         <avalonia:RoutedViewHost x:Name="Host"></avalonia:RoutedViewHost>
-    </StackPanel>
+    </DockPanel>
 </avalonia:ReactiveWindow>

@@ -225,6 +225,6 @@ public class InkbirdIBBQDriver : IDisposable
         _connectionEventSubscriptions.Dispose();
 
         if (_stateMachine.CanFire(Trigger.Disconnect))
-            _stateMachine.Fire(Trigger.Disconnect);
+            _stateMachine.FireAsync(Trigger.Disconnect);
     }
 }
