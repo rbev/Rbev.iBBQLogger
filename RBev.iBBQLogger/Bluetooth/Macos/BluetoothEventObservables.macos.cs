@@ -8,6 +8,12 @@ public static class BluetoothEventObservables
 {
     extension(CBCentralManager manager)
     {
+        public IObservable<EventPattern<object>> UpdatedStateObservable() =>
+            Observable.FromEventPattern(
+                h => manager.UpdatedState += h,
+                h => manager.UpdatedState -= h
+            );
+
         public IObservable<EventPattern<CBDiscoveredPeripheralEventArgs>> DiscoveredPeripheralObservable() =>
             Observable.FromEventPattern<CBDiscoveredPeripheralEventArgs>(
                 h => manager.DiscoveredPeripheral += h,

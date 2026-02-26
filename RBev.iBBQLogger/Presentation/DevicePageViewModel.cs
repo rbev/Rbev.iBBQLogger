@@ -31,9 +31,9 @@ public partial class DevicePageViewModel : BaseViewModel
 
         _probeLogEntries
             .Connect()
-            .Sort(SortExpressionComparer<ProbeLogEntry>.Ascending(x => x.TimeStamp))
-            .TakeLast(500)
-            .Transform(x => x.Message)
+            .Sort(SortExpressionComparer<ProbeLogEntry>.Descending(x => x.TimeStamp))
+            .Top(500)
+            .Transform(x => string.Format($"{x.TimeStamp:hh:MM:ss}: {x.Message} {x.Temperature:0.00}°C"))
             .Bind(out var probeLog)
             .Subscribe();
 
@@ -59,7 +59,8 @@ public partial class DevicePageViewModel : BaseViewModel
                 return _bluetoothService
                     .StreamProbeData(device.Value, autoReconnect: true);
 
-            }).Switch()
+            })
+            .Switch()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(probes =>
                 {
@@ -81,6 +82,7 @@ public partial class DevicePageViewModel : BaseViewModel
     {
         DeviceName = $"{device.Name} ({device.Id})";
         Message = string.Empty;
+        Device = device;
     }
 
     [ReactiveCommand]

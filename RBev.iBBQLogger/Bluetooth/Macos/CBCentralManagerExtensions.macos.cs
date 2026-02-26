@@ -9,24 +9,47 @@ public static class CBCentralManagerExtensions
 {
     extension(CBCentralManager manager)
     {
-        public IObservable<EventPattern<CBDiscoveredPeripheralEventArgs>> ScanForPeripheralsAsync(
-            CBUUID[]? peripheralUuids = null)
+        public async Task EnsurePoweredOnAsync(TimeSpan? timeout = null)
         {
-            return Observable.Create<EventPattern<CBDiscoveredPeripheralEventArgs>>(observer =>
-            {
-                var eventObserver = manager.DiscoveredPeripheralObservable().Subscribe(observer);
+            if (manager.State == CBManagerState.PoweredOn)
+                return;
 
-                manager.ScanForPeripherals(peripheralUuids);
+            var state = await manager
+                .UpdatedStateObservable()
+                .Select(_ => manager.State)
+                .StartWith(manager.State)
+                .Where(s => s != CBManagerState.Unknown)
+                .FirstAsync()
+                .Timeout(timeout ?? TimeSpan.FromSeconds(10));
 
-                return new CompositeDisposable(
-                    eventObserver,
-                    Disposable.Create(manager.StopScan)
-                );
-            });
+            if (state != CBManagerState.PoweredOn)
+                throw new InvalidOperationException($"Bluetooth is not ready. Current state: {state}");
+        }
+
+        public IObservable<EventPattern<CBDiscoveredPeripheralEventArgs>> ScanForPeripheralsAsync(
+            CBUUID[]? peripheralUuids = null,
+            TimeSpan? poweredOnTimeout = null)
+        {
+            return Observable.Defer(() =>
+                Observable.FromAsync(() => manager.EnsurePoweredOnAsync(poweredOnTimeout))
+                    .SelectMany(_ => Observable.Create<EventPattern<CBDiscoveredPeripheralEventArgs>>(observer =>
+                    {
+                        var eventObserver = manager.DiscoveredPeripheralObservable().Subscribe(observer);
+
+                        manager.ScanForPeripherals(peripheralUuids);
+
+                        return new CompositeDisposable(
+                            eventObserver,
+                            Disposable.Create(manager.StopScan)
+                        );
+                    }))
+            );
         }
 
         public async Task<bool> ConnectPeripheralAsync(CBPeripheral peripheral, TimeSpan? timeout = null)
         {
+            await manager.EnsurePoweredOnAsync(timeout);
+
             if (peripheral.State == CBPeripheralState.Connected) return true;
             return await Observable.Create<bool>(observer =>
                 {
