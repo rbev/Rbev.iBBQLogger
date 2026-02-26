@@ -24,13 +24,19 @@ public partial class DevicePageViewModel : BaseViewModel
     [Reactive] public partial string DeviceName { get; set; } = "No device selected";
     [Reactive] public partial string Message { get; set; } = string.Empty;
     [Reactive] public partial bool IsStreaming { get; set; }
-    [Reactive] public partial InkbirdDevice? Device  { get; set; }
-    [Reactive] public partial Axis[] XAxes { get; set; } = [new Axis { Name = "Sample", MinLimit = 0 }];
-    [Reactive] public partial Axis[] YAxes { get; set; } = [new Axis { Name = "Temperature (C)", MinLimit = 0, MaxLimit = 250 }];
-    
-    public ReadOnlyObservableCollection<string> ProbeLog { get; }
-    public ReadOnlyObservableCollection<ReactiveChartSeries> ChartSeries { get; }
+    [Reactive] public partial InkbirdDevice? Device { get; set; }
+    [Reactive] public partial Axis[] XAxes { get; set; } = [new TimeSpanAxis(
+        TimeSpan.FromMinutes(1), 
+        x=> x.ToString("g") )
+    {
+        Name = "Minutes"
+    }];
 
+    [Reactive]
+    public partial Axis[] YAxes { get; set; } = [new Axis { Name = "Temperature (C)" }];
+
+    public ReadOnlyObservableCollection<string> ProbeLog { get; }
+    [Reactive] public partial IReadOnlyCollection<ReactiveChartSeries> ChartSeries { get; set; }
 
     public DevicePageViewModel(IScreen screen, IBluetoothService bluetoothService) : base(screen)
     {
@@ -52,7 +58,7 @@ public partial class DevicePageViewModel : BaseViewModel
                 d(group
                     .List
                     .Connect()
-                    .Transform(p => new ObservablePoint((p.TimeStamp - Epoch).TotalSeconds, p.Temperature))
+                    .Transform(p => new TimeSpanPoint(p.TimeStamp - Epoch, p.Temperature))
                     .Bind(out var points)
                     .Subscribe());
                 return new ReactiveChartSeries
@@ -62,17 +68,16 @@ public partial class DevicePageViewModel : BaseViewModel
                 };
             })
             .ObserveOn(RxApp.MainThreadScheduler)
-            .Bind(out var chartSeries);
-        ChartSeries = chartSeries;
-        
+            .ToCollection();
+            
+        //ChartSeriesX = chartSeries;
+
         this.WhenActivated(d =>
         {
             d(log.Subscribe());
-            d(chart.Subscribe());
+            //d(chart.Subscribe());
+            d(chart.BindTo(this, x => x.ChartSeries));
             d(StreamData());
-
-            d(ChartSeries.AsObservableChangeSet().CountChanged()
-                .Subscribe(x => this.RaisePropertyChanged(nameof(ChartSeries))));
         });
     }
 
@@ -89,7 +94,6 @@ public partial class DevicePageViewModel : BaseViewModel
 
                 return _bluetoothService
                     .StreamProbeData(device.Value, autoReconnect: true);
-
             })
             .Switch()
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -142,5 +146,4 @@ public partial class DevicePageViewModel : BaseViewModel
     {
         HostScreen.Router.NavigateBack.Execute().Subscribe();
     }
-
 }

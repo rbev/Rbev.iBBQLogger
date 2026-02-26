@@ -11,5 +11,5 @@ public partial class ReactiveChartSeries : ReactiveObject
     public partial string? Name { get; set; }
     
     [Reactive]
-    public partial ReadOnlyObservableCollection<ObservablePoint>? Values { get; set; }
+    public partial ReadOnlyObservableCollection<TimeSpanPoint>? Values { get; set; }
 }
